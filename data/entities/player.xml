@@ -1,0 +1,593 @@
+<Entity 
+  name="DEBUG_NAME:player"
+  tags="mortal,human,hittable,peasant,prey,player_unit,teleportable" >
+  
+  <HotspotComponent
+      _tags="hand"
+      sprite_hotspot_name="hand"
+  ></HotspotComponent>
+
+  <HotspotComponent
+    _tags="shoot_pos"
+    offset.x="0"
+    offset.y="-2"
+  ></HotspotComponent>
+
+  <PhysicsPickUpComponent 
+    original_left_joint_pos.x="-8"
+    original_left_joint_pos.y="-2"
+    original_right_joint_pos.x="-2"
+    original_right_joint_pos.y="-2"
+    pick_up_strength="400"
+  ></PhysicsPickUpComponent>
+
+  <PlatformShooterPlayerComponent
+    center_camera_on_this_entity="1"
+    aiming_reticle_distance_from_character="60"
+    camera_max_distance_from_character="50"
+    move_camera_with_aim="1"
+    eating_area_min.x="-6"
+    eating_area_max.x="6"
+    eating_area_min.y="-4"
+    eating_area_max.y="6"
+    eating_cells_per_frame="2"
+  ></PlatformShooterPlayerComponent>
+  
+  <PathFindingGridMarkerComponent
+    player_marker_radius="100.0"
+    marker_offset_y="-3"
+    marker_work_flag="8"
+  ></PathFindingGridMarkerComponent>
+
+  <CharacterDataComponent 
+    platforming_type="2"
+    check_collision_max_size_x="4" 
+    check_collision_max_size_y="4" 
+    climb_over_y="4" 
+    collision_aabb_max_x="5" 
+    collision_aabb_max_y="4" 
+    collision_aabb_min_x="-5" 
+    collision_aabb_min_y="-3" 
+
+    eff_hg_offset_y="1.28572" 
+    eff_hg_position_x="0" 
+    eff_hg_position_y="5" 
+    eff_hg_size_x="6.42857" 
+    eff_hg_size_y="5.14286" 
+    eff_hg_velocity_max_x="10000" 
+    eff_hg_velocity_max_y="-10000" 
+    eff_hg_velocity_min_x="-10000" 
+    eff_hg_velocity_min_y="-10000" 
+    eff_hg_damage_min="10"
+    eff_hg_damage_max="95"
+    eff_hg_update_box2d="0"
+    eff_hg_b2force_multiplier="0.0015"
+    effect_hit_ground="1" 
+    fly_time_max="0"
+    fly_recharge_spd="0"
+    fly_recharge_spd_ground="0"
+    flying_needs_recharge="0"
+    flying_in_air_wait_frames="38"
+    flying_recharge_removal_frames="8"
+    gravity="0"
+    buoyancy_check_offset_y="-7"
+    send_transform_update_message="0"
+	dont_update_velocity_and_xform="1"
+  ></CharacterDataComponent>
+
+  <CharacterPlatformingComponent 
+    animation_to_play="" 
+    jump_keydown_buffer="2" 
+    jump_velocity_y="0" 
+    jump_velocity_x="0"
+    fly_model_player="0"
+    fly_smooth_y="0"
+    fly_speed_max_up="0"
+    fly_speed_max_down="0"
+    fly_speed_mult="0"
+    fly_speed_change_spd="0"
+    mouse_look="1" 
+    keyboard_look="0"
+    mouse_look_buffer="1" 
+    pixel_gravity="1" 
+    run_velocity="0"
+    fly_velocity_x="0" 
+    accel_x="0" 
+    turning_buffer="0.5" 
+    velocity_min_x="-10000" 
+    velocity_max_x="10000" 
+    velocity_min_y="-10000"
+    velocity_max_y="10000"
+  ></CharacterPlatformingComponent>
+
+  <GenomeDataComponent 
+    herd_id="player"
+    food_chain_rank="20"
+    is_predator="1"
+    berserk_dont_attack_friends="1"
+  ></GenomeDataComponent>
+
+
+
+  <ControlsComponent 
+    enabled="1" 
+    gamepad_fire_on_thumbstick_extend="0"
+    gamepad_fire_on_thumbstick_extend_threshold="0.9"
+    gamepad_indirect_aiming_enabled="0"
+  ></ControlsComponent>
+  
+  <DamageModelComponent 
+    air_in_lungs="7" 
+    air_in_lungs_max="7" 
+    air_lack_of_damage="0.6" 
+    air_needed="1" 
+    falling_damage_damage_max="1.2" 
+    falling_damage_damage_min="0.1" 
+    falling_damage_height_max="250" 
+    falling_damage_height_min="70" 
+    falling_damages="0" 
+    fire_damage_amount="0.08" 
+    fire_probability_of_ignition="0" 
+    invincibility_frames="60"
+    hp="4" 
+    is_on_fire="0" 
+    materials_damage="1" 
+    materials_that_damage="acid,lava,blood_cold_vapour,blood_cold,ice_acid_static,ice_acid_glass,rock_static_cursed,magic_gas_hp_regeneration,rock_static_cursed_green,cursed_liquid,poo_gas"  
+    materials_how_much_damage="0.005,0.003,0.0006,0.0009,0.001,0.001,0.005,-0.005,0.004,0.0005,0.00001" 
+    ragdoll_filenames_file="" 
+    ragdoll_offset_y="-5"
+    ragdollify_child_entity_sprites="0"
+    blood_spray_material="spark"
+	blood_material="spark"
+	blood_multiplier="0"
+	create_ragdoll="0"
+    physics_objects_damage="0"
+    critical_damage_resistance="1"
+    ><damage_multipliers
+      explosion="0.35" 
+	  holy="1.5"
+	  poison="0"
+	  radioactive="0"
+	  >
+    </damage_multipliers>
+  </DamageModelComponent>
+
+  <ExplodeOnDamageComponent
+  	explode_on_death_percent="1"
+	explode_on_damage_percent="0"
+
+  >
+    <config_explosion
+      never_cache="0"
+      damage="2.5"
+      camera_shake="40" 
+      explosion_radius="40" 
+      explosion_sprite="data/particles/explosion_032.xml" 
+      explosion_sprite_lifetime="10" 
+      create_cell_probability="50" 
+      hole_destroy_liquid="0" 
+      hole_enabled="1" 
+      ray_energy="4000000"
+      particle_effect="0" 
+      load_this_entity="data/entities/particles/particle_explosion/main_gunpowder_medium.xml"
+      damage_mortals="1" 
+      physics_explosion_power.min="1.5" 
+      physics_explosion_power.max="2.2" 
+      physics_throw_enabled="1" 
+      shake_vegetation="1" 
+      sparks_count_min="7" 
+      sparks_count_max="20" 
+      sparks_enabled="1" 
+      stains_enabled="1" 
+      stains_radius="15" 
+      delay.min="1"
+      delay.max="4"
+      explosion_delay_id="1"
+      audio_event_name="explosions/box" >
+    </config_explosion>
+  </ExplodeOnDamageComponent>
+
+  <MaterialSuckerComponent
+    suck_gold="1"
+    suck_health="1"
+  ></MaterialSuckerComponent>
+
+  <HitboxComponent 
+    aabb_max_x="5" 
+    aabb_max_y="4" 
+    aabb_min_x="-5" 
+    aabb_min_y="-3" 
+    is_enemy="0" 
+    is_item="0" 
+    is_player="1"
+  ></HitboxComponent>
+
+
+  <Inventory2Component
+    quick_inventory_slots="10"
+    full_inventory_slots_x="16"
+    full_inventory_slots_y="1"
+  ></Inventory2Component>
+
+  <InventoryGuiComponent />
+
+<SpriteAnimatorComponent>
+</SpriteAnimatorComponent>
+<SpriteComponent
+	_tags="player"
+	alpha="1"
+	image_file="data/enemies_gfx/player.xml"
+	next_rect_animation="walk"
+	offset_x="0"
+	offset_y="0"
+	rect_animation="walk"
+	z_index="0.6"
+></SpriteComponent>
+  <SpriteComponent 
+    _tags="aiming_reticle" 
+    alpha="1" 
+    image_file="data/ui_gfx/mouse_cursor.png"
+    ui_is_parent="0" 
+    offset_x="6" 
+    offset_y="35" 
+    has_special_scale="1"
+    special_scale_x="1"
+    special_scale_y="1"
+    z_index="-10000"
+    emissive="1"
+  ></SpriteComponent>
+
+  <SpriteStainsComponent>
+  </SpriteStainsComponent>
+
+  <StatusEffectDataComponent>
+  </StatusEffectDataComponent>
+
+	<AudioLoopComponent
+		_enabled="1"
+		file="mods/evaisa.drone/drone.bank"
+		event_name="drone/fly"
+		auto_play="0"
+		auto_play_if_enabled="1"
+		play_on_component_enable="1"
+		>
+	</AudioLoopComponent>	
+
+	<AudioLoopComponent
+		_enabled="1"
+		file="mods/evaisa.drone/drone.bank"
+		event_name="drone/alarm"
+		auto_play="1"
+		auto_play_if_enabled="1"
+		play_on_component_enable="1"
+		>
+	</AudioLoopComponent>	
+
+
+	<AudioLoopComponent
+		_enabled="1"
+		file="mods/evaisa.drone/drone.bank"
+		event_name="drone/grind"
+		auto_play="1"
+		auto_play_if_enabled="1"
+		play_on_component_enable="1"
+		>
+	</AudioLoopComponent>	
+
+  
+  <ElectricitySourceComponent
+    radius="2"
+		emission_interval_frames="124"
+		>
+  </ElectricitySourceComponent>
+
+  <AudioLoopComponent
+    _tags="sound_air_whoosh"
+    file="data/audio/Desktop/player.bank"
+    event_name="player/air_whoosh"
+    volume_autofade_speed="0.5"
+  ></AudioLoopComponent>
+
+  <AudioLoopComponent
+    _tags="sound_underwater"
+    file="data/audio/Desktop/player.bank"
+    event_name="player/underwater"
+    volume_autofade_speed="0.25"
+  ></AudioLoopComponent>
+
+  <AudioLoopComponent
+    _tags="sound_suffocating"
+    file="data/audio/Desktop/player.bank"
+    event_name="player/suffocating"
+    volume_autofade_speed="0.25"
+  ></AudioLoopComponent>
+
+  <AudioLoopComponent
+    _tags="sound_damage_curse"
+    file="data/audio/Desktop/player.bank"
+    event_name="player/suffocating"
+    volume_autofade_speed="0.1"
+  ></AudioLoopComponent>
+
+  <AudioLoopComponent
+    _tags="sound_pick_gold_sand"
+    file="data/audio/Desktop/player.bank"
+    event_name="player/pick_gold_sand"
+    volume_autofade_speed="0.05"
+  ></AudioLoopComponent>
+
+  <AudioListenerComponent
+    z="-60"
+  ></AudioListenerComponent>
+  
+  <GunComponent>
+  </GunComponent>
+
+  <LiquidDisplacerComponent
+    radius="1"
+  ></LiquidDisplacerComponent>
+
+  <ItemPickUpperComponent
+    drop_items_on_death="0"
+  ></ItemPickUpperComponent>
+
+
+<ParticleEmitterComponent
+	_tags="thruster_left"
+	emitted_material_name="rocket_particles"
+	offset.x="-7"
+	offset.y="-2"
+	x_pos_offset_min="-2"
+	x_pos_offset_max="2"
+	y_pos_offset_min="0"
+	y_pos_offset_max="0"
+	x_vel_min="-20"
+	x_vel_max="20"
+	y_vel_min="0"
+	y_vel_max="0"
+	count_min="3"
+	count_max="7"
+	gravity.x = "0"
+	gravity.y = "0"
+	lifetime_min="0.0" 
+	lifetime_max="0.2"
+	create_real_particles="0"
+	emit_cosmetic_particles="1"
+	emission_interval_min_frames="0"
+	emission_interval_max_frames="1"
+	collide_with_grid="1"
+	is_emitting="1" >
+</ParticleEmitterComponent>
+
+
+<ParticleEmitterComponent
+	_tags="thruster_right"
+	emitted_material_name="rocket_particles"
+	offset.x="7"
+	offset.y="-2"
+	x_pos_offset_min="-2"
+	x_pos_offset_max="2"
+	y_pos_offset_min="0"
+	y_pos_offset_max="0"
+	x_vel_min="-20"
+	x_vel_max="20"
+	y_vel_min="0"
+	y_vel_max="0"
+	count_min="3"
+	count_max="7"
+	gravity.x = "0"
+	gravity.y = "0"
+	lifetime_min="0.0" 
+	lifetime_max="0.2"
+	create_real_particles="0"
+	emit_cosmetic_particles="1"
+	emission_interval_min_frames="0"
+	emission_interval_max_frames="1"
+	collide_with_grid="1"
+	is_emitting="1" >
+</ParticleEmitterComponent>
+
+
+  <GameLogComponent
+    report_damage="0"
+    report_death="1"
+  ></GameLogComponent>
+
+  <GameStatsComponent is_player="1" />
+
+  <LightComponent 
+    r="255"
+    g="255"
+    b="255"
+    radius="350"
+    fade_out_time="5.0"
+  ></LightComponent>
+
+  <VelocityComponent
+    updates_velocity="0"
+	air_friction="1"
+  ></VelocityComponent>
+
+  <!-- ingestion -->
+
+  <MaterialInventoryComponent 
+      _tags="ingestion"
+      drop_as_item="0"
+      on_death_spill="0"
+      kill_when_empty="0"
+  ></MaterialInventoryComponent>
+  
+  <IngestionComponent 
+    ingestion_capacity="7500"
+    overingestion_damage="0.002"
+    blood_healing_speed="0.0024"
+  ></IngestionComponent>
+
+  <DrugEffectComponent>
+  </DrugEffectComponent>
+
+  <!-- --> 
+
+  <WalletComponent>
+  </WalletComponent>
+
+  <StreamingKeepAliveComponent>
+  </StreamingKeepAliveComponent>
+
+	<VariableStorageComponent
+		name="ocarina_song"
+		value_string=""
+	></VariableStorageComponent>
+	
+	<VariableStorageComponent
+		name="kantele_song"
+		value_string=""
+	></VariableStorageComponent>
+	
+	<VariableStorageComponent
+		name="ocarina_song_pos"
+		value_int="0"
+	></VariableStorageComponent>
+	
+	<VariableStorageComponent
+		name="kantele_song_pos"
+		value_int="0"
+	></VariableStorageComponent>
+	
+	<LuaComponent
+		script_source_file="data/scripts/magic/player_biome_check.lua"
+		execute_every_n_frame="80"
+		>
+	</LuaComponent>
+	
+	<LuaComponent
+		script_source_file="data/scripts/magic/orb_map_init.lua"
+		execute_every_n_frame="10"
+		remove_after_executed="1"
+		>
+	</LuaComponent>
+
+	<LuaComponent
+		script_source_file="data/scripts/drone_controls.lua"
+		execute_every_n_frame="1"
+		>
+	</LuaComponent>
+
+  <Entity>
+    <Base file="data/entities/misc/effect_no_heal_in_meat_biome.xml" >
+    </Base>
+  </Entity>
+
+  <ParticleEmitterComponent 
+    _tags="fast_movement_particles"
+    emitted_material_name="spark_white"
+    offset.x="0"
+    offset.y="3"
+    x_pos_offset_min="0"
+    x_pos_offset_max="0"
+    y_pos_offset_min="0"
+    y_pos_offset_max="0"
+    x_vel_min="0"
+    x_vel_max="0"
+    y_vel_min="0"
+    y_vel_max="0"
+    gravity.y="0.0"
+    count_min="1"
+    count_max="1"
+    lifetime_min="0.3"
+    lifetime_max="0.5"
+    is_trail="1"
+    trail_gap="1.0"
+    render_on_grid="1"
+    fade_based_on_lifetime="1"
+    airflow_force="0.1"
+    airflow_time="0.001"
+    airflow_scale="0.0833"
+    emission_interval_min_frames="1"
+    emission_interval_max_frames="1"
+    emit_cosmetic_particles="1"
+    create_real_particles="0"
+    cosmetic_force_create="0"
+    ignore_transform_updated_msg="1"
+    is_emitting="1"
+    >
+  </ParticleEmitterComponent>
+
+  <ParticleEmitterComponent 
+    _tags="fast_movement_particles"
+    emitted_material_name="spark_white"
+    offset.x="-2"
+    offset.y="-6"
+    x_pos_offset_min="0"
+    x_pos_offset_max="0"
+    y_pos_offset_min="0"
+    y_pos_offset_max="0"
+    x_vel_min="0"
+    x_vel_max="0"
+    y_vel_min="0"
+    y_vel_max="0"
+    gravity.y="0.0"
+    count_min="1"
+    count_max="1"
+    lifetime_min="0.3"
+    lifetime_max="0.5"
+    is_trail="1"
+    trail_gap="1.0"
+    render_on_grid="1"
+    fade_based_on_lifetime="1"
+    airflow_force="0.5"
+    airflow_time="0.001"
+    airflow_scale="0.0833"
+    emission_interval_min_frames="1"
+    emission_interval_max_frames="1"
+    emit_cosmetic_particles="1"
+    create_real_particles="0"
+    cosmetic_force_create="0"
+    ignore_transform_updated_msg="1"
+    is_emitting="1"
+    >
+  </ParticleEmitterComponent>
+
+  <ParticleEmitterComponent 
+    _tags="fast_movement_particles"
+    emitted_material_name="spark_white"
+    offset.x="0"
+    offset.y="-12"
+    x_pos_offset_min="0"
+    x_pos_offset_max="0"
+    y_pos_offset_min="0"
+    y_pos_offset_max="0"
+    x_vel_min="0"
+    x_vel_max="0"
+    y_vel_min="0"
+    y_vel_max="0"
+    gravity.y="0.0"
+    count_min="1"
+    count_max="1"
+    lifetime_min="0.3"
+    lifetime_max="0.5"
+    is_trail="1"
+    trail_gap="1.0"
+    render_on_grid="1"
+    fade_based_on_lifetime="1"
+    airflow_force="0.5"
+    airflow_time="0.001"
+    airflow_scale="0.0833"
+    emission_interval_min_frames="1"
+    emission_interval_max_frames="1"
+    emit_cosmetic_particles="1"
+    create_real_particles="0"
+    cosmetic_force_create="0"
+    ignore_transform_updated_msg="1"
+    is_emitting="1"
+    >
+  </ParticleEmitterComponent>
+
+   <Entity name="inventory_quick">
+      <Entity><Base file="data/entities/items/starting_wand_rng.xml" /></Entity>
+      <Entity><Base file="data/entities/items/starting_bomb_wand_rng.xml" /></Entity>
+      <Entity><Base file="data/entities/items/pickup/potion_starting.xml" /></Entity>
+	</Entity>
+	<Entity name="inventory_full"/>
+
+</Entity>

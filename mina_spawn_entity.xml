@@ -1,0 +1,6 @@
+<Entity>
+	<SpriteAnimatorComponent/>
+	<SpriteComponent
+		image_file="mods/evaisa.drone/mina_spawn.xml"
+	/>
+</Entity>

@@ -1,0 +1,31 @@
+<Entity>
+ <LifetimeComponent
+	lifetime="60"
+ />
+ <SpriteComponent
+  _tags="fx"
+  additive="1"
+  alpha="1"
+  emissive="1"
+  fog_of_war_hole="0"
+  has_special_scale="0"
+  is_text_sprite="0"
+  kill_entity_after_finished="0"
+  never_ragdollify_on_death="0"
+  offset_animator_offset.x="0"
+  offset_animator_offset.y="0"
+  offset_x="0"
+  offset_y="0"
+  smooth_filtering="0"
+  special_scale_x="1"
+  special_scale_y="1"
+  transform_offset.x="0"
+  transform_offset.y="0"
+  ui_is_parent="0"
+  update_transform="1"
+  update_transform_rotation="1"
+  visible="1"
+  z_index="-1.2000000476837" 
+  image_file="data/particles/knockback_star_spinning.xml"
+  />
+</Entity>

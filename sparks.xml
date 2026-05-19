@@ -1,0 +1,28 @@
+<Entity>
+	<ParticleEmitterComponent
+        emitted_material_name="spark"
+        offset.x="0"
+        offset.y="0"
+        x_pos_offset_min="-2"
+        x_pos_offset_max="2"
+        y_pos_offset_min="-1"
+        y_pos_offset_max="1"
+        x_vel_min="-150"
+        x_vel_max="150"
+        y_vel_min="-150"
+        y_vel_max="150"
+        count_min="0"
+        count_max="5"
+        lifetime_min="0" 
+        lifetime_max="0.2"
+        create_real_particles="1"
+        emit_cosmetic_particles="0"
+        emission_interval_min_frames="0"
+        emission_interval_max_frames="1"
+		collide_with_grid="1"
+        is_emitting="1" >
+    </ParticleEmitterComponent>
+	<LifetimeComponent
+		lifetime="10"
+	/>
+</Entity>
