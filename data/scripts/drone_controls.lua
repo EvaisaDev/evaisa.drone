@@ -352,6 +352,8 @@ local function switch_animation(comp, _, animation)
 		--EntityRefreshSprite(entity, sprite_comp)
 	end
 end
+local left_thrust = 0
+local right_thrust = 0
 
 if(thrust_left < thrust_right)then
 	ComponentSetValue2(jetpack_left, "y_vel_min", math.floor(10 * velocity_mult_left))
@@ -365,6 +367,9 @@ if(thrust_left < thrust_right)then
 	ComponentSetValue2(jetpack_right, "count_max", math.floor(7 * velocity_mult_right))	
 
 	switch_animation(sprite_comp, "rect_animation", "thrust_right")
+
+	left_thrust = 0.4 * velocity_mult_left
+	right_thrust = 1 * velocity_mult_right
 
 
 
@@ -384,6 +389,9 @@ elseif(thrust_right < thrust_left)then
 
 	switch_animation(sprite_comp, "rect_animation", "thrust_left")
 
+	left_thrust = 1 * velocity_mult_left
+	right_thrust = 0.4 * velocity_mult_right
+
 elseif(thrust_left == 0 and thrust_right == 0 and not any_contact and not down)then
 	ComponentSetValue2(jetpack_left, "y_vel_min", math.floor(2 * velocity_mult_left))
 	ComponentSetValue2(jetpack_left, "y_vel_max", math.floor(10 * velocity_mult_left))
@@ -394,6 +402,10 @@ elseif(thrust_left == 0 and thrust_right == 0 and not any_contact and not down)t
 	ComponentSetValue2(jetpack_right, "y_vel_max", math.floor(10 * velocity_mult_right))
 	ComponentSetValue2(jetpack_right, "count_min", math.floor(1 * velocity_mult_right))
 	ComponentSetValue2(jetpack_right, "count_max", math.floor(2 * velocity_mult_right))	
+
+
+	left_thrust = 0.2* velocity_mult_left
+	right_thrust = 0.2 * velocity_mult_right
 
 	switch_animation(sprite_comp, "rect_animation",  "idle")
 elseif(thrust_left == 0 and thrust_right == 0 and (any_contact or down))then
@@ -411,6 +423,8 @@ else
 
 	switch_animation(sprite_comp, "rect_animation",  "thrust_both")
 
+	left_thrust = 1 * velocity_mult_left
+	right_thrust = 1 * velocity_mult_right
 end
 
 fly_sound_initialized = fly_sound_initialized or false
@@ -502,6 +516,13 @@ if(DEBUG_DRAW)then
 	GameCreateSpriteForXFrames(WHITE, right_arm_x, right_arm_y, true, 0, 0, 1, true)
 end
 
+last_grind = last_grind or -100
+initialized2 = initialized2 or false
+if grind_sound and not initialized2 then
+	ComponentSetValue2(grind_sound, "m_volume", 0.001)
+	initialized2 = true
+end
+
 local air_ray_steps = 10
 for i = 0, air_ray_steps do
 	if(thrust_left == 0 and thrust_right == 0)then
@@ -511,12 +532,12 @@ for i = 0, air_ray_steps do
 	local ray_x = left_arm_x + (right_arm_x - left_arm_x) * t
 	local ray_y = left_arm_y + (right_arm_y - left_arm_y) * t
 
-	local mult = thrust_left / 20
-	if(i > 5)then
-		mult = thrust_right / 20
+	-- mult is lerped from left_thrust to right_thrust as we go from left arm to right arm
+	local mult = 0
+	if thrust_left > 0 or thrust_right > 0 then
+		mult = (1 - t) * left_thrust + t * right_thrust
+		mult = math.max(mult, 0.01)
 	end
-
-	print(mult)
 
 	local proj = EntityLoad("mods/evaisa.drone/wind.xml", ray_x, ray_y)
 	local projectile_comp = EntityGetFirstComponentIncludingDisabled(proj, "ProjectileComponent")
@@ -553,17 +574,9 @@ for i = 0, air_ray_steps do
 	end
 end
 
-last_grind = last_grind or -100
-
-initialized2 = initialized2 or false
-
 local hit_any_propeller = (hit_right_propeller and (thrust_right > 0)) or (hit_left_propeller and (thrust_left > 0))
 
 if(grind_sound)then
-	if(not initialized2)then
-		ComponentSetValue2(grind_sound, "m_volume", 0.001)
-		initialized2 = true
-	end
 	local current_grind_volume = ComponentGetValue2(grind_sound, "m_volume")
 	local grind_volume_lerp = 0.04
 	local grind_sustain = 30

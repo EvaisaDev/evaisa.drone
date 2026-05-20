@@ -1,13 +1,5 @@
 <Entity name="$projectile_default" tags="projectile_player" >
 
-	<Base file="data/entities/base_projectile.xml" >
-    <VelocityComponent
-      gravity_y="0"
-      air_friction="1.7"
-	  mass="0.01"
-	  >
-    </VelocityComponent>
-	</Base>
 
   <ProjectileComponent 
     _enabled="1" 
@@ -34,7 +26,7 @@
     shoot_light_flash_g="128"
     shoot_light_flash_b="128"
     shoot_light_flash_radius="48"
-	  knockback_force="10.0"
+	  knockback_force="1.0"
     physics_impulse_coeff="100000"
 	>
     <config_explosion
@@ -66,11 +58,8 @@
     </config_explosion>
   </ProjectileComponent>
   
-  <SpriteComponent
-	image_file="mods/evaisa.drone/pixel_red.png"
-  />
   
-  <MagicConvertMaterialComponent
+  <!--<MagicConvertMaterialComponent
         fan_the_flames="10"
         from_material=""
         to_material=""
@@ -78,7 +67,7 @@
         loop="1"
         is_circle="1"
         radius="2" >
-    </MagicConvertMaterialComponent>
+    </MagicConvertMaterialComponent>-->
 
 
 </Entity>
