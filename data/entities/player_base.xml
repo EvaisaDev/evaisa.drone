@@ -7,6 +7,10 @@
       sprite_hotspot_name="hand"
   ></HotspotComponent>
 
+	<LuaComponent
+		script_teleported="mods/evaisa.drone/data/scripts/teleported.lua"
+	/>
+
   <HotspotComponent
     _tags="shoot_pos"
     offset.x="0"
@@ -408,7 +412,6 @@
 
   <VelocityComponent
     updates_velocity="0"
-	air_friction="1"
   ></VelocityComponent>
 
   <!-- ingestion -->
@@ -585,12 +588,5 @@
     is_emitting="1"
     >
   </ParticleEmitterComponent>
-
-   <Entity name="inventory_quick">
-      <Entity><Base file="data/entities/items/starting_wand_rng.xml" /></Entity>
-      <Entity><Base file="data/entities/items/starting_bomb_wand_rng.xml" /></Entity>
-      <Entity><Base file="data/entities/items/pickup/potion_starting.xml" /></Entity>
-	</Entity>
-	<Entity name="inventory_full"/>
 
 </Entity>

@@ -1,3 +1,5 @@
+dofile_once("mods/evaisa.drone/files/status_helper.lua")
+
 drone = drone or {
 	angular_velocity = 0,
 	contact_normals  = {},
@@ -16,6 +18,26 @@ UPRIGHT_STRENGTH = 5
 IMPACT_DAMAGE_SCALE    = 0.0002
 IMPACT_DAMAGE_MIN_VEL  = 10
 CRUSH_DAMAGE_PER_TICK  = 0.01
+
+local thrust_mult = tonumber(GlobalsGetValue("drone_thrust_mult", "1"))
+THRUST = THRUST * thrust_mult
+
+local stabilizer_mult = tonumber(GlobalsGetValue("drone_stabilizer_mult", "1"))
+UPRIGHT_STRENGTH = UPRIGHT_STRENGTH * stabilizer_mult
+
+local impact_mult = tonumber(GlobalsGetValue("drone_impact_mult", "1"))
+IMPACT_DAMAGE_SCALE = IMPACT_DAMAGE_SCALE * impact_mult
+
+local wind_mult = tonumber(GlobalsGetValue("drone_wind_mult", "0"))
+
+local levitation_trail_stacks = tonumber(GlobalsGetValue("drone_levitation_trail_stacks", "0"))
+
+local drone_limited_stabilizer_frames = tonumber(GlobalsGetValue("drone_limited_stabilizer_frames", "0"))
+
+local manual_controls = ModSettingGet("evaisa.drone.manual_controls") or false
+local thrust_volume  = tonumber(ModSettingGet("evaisa.drone.thrust_volume"))  or 1.0
+local alarm_volume   = tonumber(ModSettingGet("evaisa.drone.alarm_volume"))   or 1.0
+local grind_volume   = tonumber(ModSettingGet("evaisa.drone.grind_volume"))   or 1.0
 
 local COLLIDER_POINTS = {
 	{ 0,  -3 },
@@ -55,16 +77,76 @@ for i, v in ipairs(audio_comps or {})do
 	end
 end
 
+
+if(not entity or not controls_comp or not jetpack_left or not jetpack_right)then
+	return
+end
+
+
+if (GameGetFrameNum() % 20 == 0)then
+	local wetness_level = GetStainPercentage(entity, "WET")
+	wetness_level = wetness_level + GetStainPercentage(entity, "BLOODY")
+	wetness_level = wetness_level + GetStainPercentage(entity, "RADIOACTIVE")
+	wetness_level = wetness_level + GetStainPercentage(entity, "POISONED")
+
+	local electricity = EntityGetFirstComponentIncludingDisabled(entity, "ElectricitySourceComponent")
+
+	if(wetness_level > 0.5)then
+		EntitySetComponentIsEnabled(entity, electricity, true)
+	else
+		EntitySetComponentIsEnabled(entity, electricity, false)
+	end
+end
+
+local children = EntityGetAllChildren(entity)
 was_stunned = was_stunned or false
 local is_stunned = false
-for i, v in ipairs(EntityGetAllChildren(entity) or {})do
-	local sprite_component = EntityGetFirstComponentIncludingDisabled(v, "SpriteComponent")
-	if(sprite_component)then
-		local image = ComponentGetValue2(sprite_component, "image_file")
-		if(image == "data/particles/knockback_star_spinning.xml")then
-			is_stunned = true
+local legs = 0
+local legs_attached = 0
+local recoil = 0
+local recoil_x, recoil_y = 0, 0
+for i, v in ipairs(children or {})do
+	if(EntityGetName(v) == "inventory_quick")then
+		for i2, v2 in ipairs(EntityGetAllChildren(v) or {})do
+			local ability_comp = EntityGetFirstComponentIncludingDisabled(v2, "AbilityComponent")
+			if(ability_comp)then
+				local recoil_val = ComponentGetValue2(ability_comp, "mItemRecoil")
+				if(recoil_val > recoil)then
+					recoil = recoil_val * (tonumber(GlobalsGetValue("drone_shot_recoil", "1")) / 10)
+					local _, _, wand_rotation = EntityGetTransform(v2)
+					recoil_x, recoil_y = -math.cos(wand_rotation), -math.sin(wand_rotation)
+				end
+			end
+		end
+	else
+		
+		local ik_limb = EntityGetFirstComponentIncludingDisabled(v, "IKLimbWalkerComponent")
+		if(ik_limb)then
+			if(ComponentGetValue2(ik_limb, "mState") == 1)then
+				legs_attached = legs_attached + 1
+			end
+			legs = legs + 1
+		end
+		if(not GameHasFlagRun("drone_no_knockback"))then
+			local sprite_component = EntityGetFirstComponentIncludingDisabled(v, "SpriteComponent")
+			if(sprite_component)then
+				local image = ComponentGetValue2(sprite_component, "image_file")
+				if(image == "data/particles/knockback_star_spinning.xml")then
+					is_stunned = true
+				end
+			end
 		end
 	end
+end
+
+
+
+local vel_x = drone.vx or 0
+local vel_y = drone.vy or 0
+
+if(recoil > 0)then
+	vel_x = vel_x + recoil_x * recoil;
+	vel_y = vel_y + recoil_y * recoil;
 end
 
 
@@ -75,18 +157,25 @@ elseif(not is_stunned)then
 	was_stunned = false
 end
 
-if(not entity or not controls_comp or not jetpack_left or not jetpack_right)then
-	return
+local leggy_mult = 1 + (legs_attached / math.max(legs, 1))
+
+
+if(drone_limited_stabilizer_frames > 0)then
+	drone_limited_stabilizer_frames = drone_limited_stabilizer_frames - 1
+
+	leggy_mult = 10
+
+	GlobalsSetValue("drone_limited_stabilizer_frames", tostring(drone_limited_stabilizer_frames))
 end
+
+stabilizer_mult = stabilizer_mult * (leggy_mult)
 
 
 local left = ComponentGetValue2(controls_comp, "mButtonDownLeft")
 local right = ComponentGetValue2(controls_comp, "mButtonDownRight")
 local up = ComponentGetValue2(controls_comp, "mButtonDownUp")
 local down = ComponentGetValue2(controls_comp, "mButtonDownDown")
-
-local vel_x = drone.vx or 0
-local vel_y = drone.vy or 0
+local throw = ComponentGetValue2(controls_comp, "mButtonDownThrow")
 
 local thrust_left = 0
 local thrust_right = 0
@@ -94,9 +183,20 @@ local delta = 1 / 60
 
 local x, y, r = EntityGetTransform(entity)
 
+local teleported_x = tonumber(GlobalsGetValue("drone_player_teleported_x", "-10000"))
+local teleported_y = tonumber(GlobalsGetValue("drone_player_teleported_y", "-10000"))
+
+if(teleported_x ~= -10000 or teleported_y ~= -10000)then
+	x = teleported_x
+	y = teleported_y
+	GlobalsSetValue("drone_player_teleported_x", "-10000")
+	GlobalsSetValue("drone_player_teleported_y", "-10000")
+end
+
+
 recording = recording or false
 recording_log = recording_log or {}
-if InputIsKeyJustDown(16) then
+--[[if InputIsKeyJustDown(16) then
 	recording = not recording
 	if recording then
 		table.insert(recording_log, "=== RECORDING START frame=" .. GameGetFrameNum() .. " ===")
@@ -104,7 +204,8 @@ if InputIsKeyJustDown(16) then
 		print(table.concat(recording_log, "\n"))
 		recording_log = {}
 	end
-end
+	--EntityInflictDamage(entity, CRUSH_DAMAGE_PER_TICK, "DAMAGE_PHYSICS_BODY_DAMAGED", "Impact", "DISINTEGRATED", 0, 0, entity, 0, 0)
+end]]
 
 if(up and not down)then
 	thrust_left = THRUST
@@ -118,13 +219,15 @@ if(right and not down)then
 	thrust_right = thrust_right * ANGLE_THRUST
 end
 
+
+
 local tilt = r - math.pi * 2 * math.floor(r / (math.pi * 2) + 0.5)
 
 local any_contact = next(drone.contact_normals) ~= nil
 
 if not any_contact and not down then
-	if(not was_stunned)then
-		local correction = tilt * UPRIGHT_STRENGTH / ARM_LENGTH
+	if(not was_stunned and (not manual_controls or stabilizer_mult > 1))then
+		local correction = (tilt * UPRIGHT_STRENGTH + drone.angular_velocity * (stabilizer_mult - 0.8) * 4) / ARM_LENGTH
 		if(up)then
 			correction = correction * 0.5
 		end
@@ -138,8 +241,29 @@ else
 	ComponentSetValue2(jetpack_right, "is_emitting", false)
 end
 
+
+if(manual_controls)then
+	if(left)then
+		thrust_left = THRUST * ANGLE_THRUST
+		thrust_right = THRUST
+	end
+	if(right)then
+		thrust_right = THRUST * ANGLE_THRUST
+		thrust_left = THRUST
+	end
+	if(left and right)then
+		thrust_left = THRUST
+		thrust_right = THRUST
+	end
+end
+
 local torque = (thrust_left - thrust_right) * ARM_LENGTH
 drone.angular_velocity = drone.angular_velocity * ANGULAR_DAMPING + torque * delta
+
+if any_contact and leggy_mult > 1 and not was_stunned then
+	local leg_correction = -tilt * (leggy_mult) * UPRIGHT_STRENGTH * delta
+	drone.angular_velocity = drone.angular_velocity + leg_correction
+end
 
 local new_r = r + drone.angular_velocity * delta
 
@@ -151,7 +275,7 @@ local total_thrust = thrust_left + thrust_right
 local frame_gravity = GRAVITY
 if(up_y > 0 and not any_contact)then
 	frame_gravity = frame_gravity + (60 * (up_y * up_y))
-elseif(down)then
+elseif(down and not any_contact)then
 	frame_gravity = frame_gravity + 100
 end
 
@@ -328,7 +452,7 @@ drone.contact_normals = new_contact_normals
 new_x = new_x + snap_x
 new_y = new_y + snap_y
 EntitySetTransform(entity, new_x, new_y, new_r)
-
+EntityApplyTransform(entity, new_x, new_y, new_r)
 drone.vx = vel_x
 drone.vy = vel_y
 
@@ -347,13 +471,23 @@ local velocity_mult_right = math.max(0.5, thrust_right / 20)
 local last_animation = ComponentGetValue2(sprite_comp, "rect_animation")
 
 local function switch_animation(comp, _, animation)
-	if(last_animation ~= animation)then
-		ComponentSetValue2(comp, "rect_animation", animation)
-		--EntityRefreshSprite(entity, sprite_comp)
+	if(last_animation ~= "throw_crouched" and last_animation ~= "throw")then
+		if(last_animation ~= animation)then
+			ComponentSetValue2(comp, "rect_animation", animation)
+			--EntityRefreshSprite(entity, sprite_comp)
+		end
 	end
 end
 local left_thrust = 0
 local right_thrust = 0
+last_throw = last_throw or -100
+if(throw)then
+	switch_animation(sprite_comp, "rect_animation", "throw")
+	last_animation = "throw"
+	last_throw = GameGetFrameNum()
+elseif(GameGetFrameNum() - last_throw > 10)then
+	last_animation = "nothing"
+end
 
 if(thrust_left < thrust_right)then
 	ComponentSetValue2(jetpack_left, "y_vel_min", math.floor(10 * velocity_mult_left))
@@ -462,7 +596,7 @@ if(fly_sound)then
 	end
 
 
-	ComponentSetValue2(fly_sound, "m_volume", math.max(math.min(current_fly_volume, 1), 0.001))
+	ComponentSetValue2(fly_sound, "m_volume", math.max(math.min(current_fly_volume * thrust_volume, 1), 0.001))
 end
 
 last_alarm = last_alarm or -100
@@ -495,7 +629,7 @@ if(alarm_sound)then
 		current_alarm_volume = current_alarm_volume - alarm_volume_lerp
 	end
 
-	ComponentSetValue2(alarm_sound, "m_volume", math.max(math.min(current_alarm_volume, 1), 0.001))
+	ComponentSetValue2(alarm_sound, "m_volume", math.max(math.min(current_alarm_volume * alarm_volume, 1), 0.001))
 end
 
 
@@ -525,9 +659,7 @@ end
 
 local air_ray_steps = 10
 for i = 0, air_ray_steps do
-	if(thrust_left == 0 and thrust_right == 0)then
-		return
-	end
+
 	local t = i / air_ray_steps
 	local ray_x = left_arm_x + (right_arm_x - left_arm_x) * t
 	local ray_y = left_arm_y + (right_arm_y - left_arm_y) * t
@@ -535,25 +667,45 @@ for i = 0, air_ray_steps do
 	-- mult is lerped from left_thrust to right_thrust as we go from left arm to right arm
 	local mult = 0
 	if thrust_left > 0 or thrust_right > 0 then
-		mult = (1 - t) * left_thrust + t * right_thrust
+		local rt = math.max(0, math.min(1, (t - 0.3) / 0.4))
+		local st = rt * rt * (3 - 2 * rt)
+		mult = (1 - st) * left_thrust + st * right_thrust
 		mult = math.max(mult, 0.01)
 	end
+	mult = math.max(mult, 0.5)
+	local spread = (0.5 - t) * 2
 
-	local proj = EntityLoad("mods/evaisa.drone/wind.xml", ray_x, ray_y)
-	local projectile_comp = EntityGetFirstComponentIncludingDisabled(proj, "ProjectileComponent")
-	if(projectile_comp)then
-		ComponentSetValue2(projectile_comp, "lifetime", 10 * mult)
+	local side_x = -up_y * spread * 30 * mult
+	local side_y =  up_x * spread * 30 * mult
+	if(not(thrust_left == 0 and thrust_right == 0))then
+		local proj = EntityLoad("mods/evaisa.drone/wind.xml", ray_x, ray_y)
+		local projectile_comp = EntityGetFirstComponentIncludingDisabled(proj, "ProjectileComponent")
+		if(projectile_comp)then
+			ComponentSetValue2(projectile_comp, "lifetime", 10 * mult)
+			ComponentSetValue2(projectile_comp, "mWhoShot", entity)
+			if(wind_mult > 0)then
+				ComponentSetValue2(projectile_comp, "collide_with_world", true)
+				ComponentSetValue2(projectile_comp, "physics_impulse_coeff", 5000 * wind_mult)
+				mult = mult * (wind_mult + 1.5)
+			end
+		end
+	
+		GameShootProjectile(entity, ray_x, ray_y, ray_x + (up_x * -50 * mult) + side_x, ray_y + (up_y * -50 * mult) + side_y, proj, true)
+
+		local velocity_comp = EntityGetFirstComponentIncludingDisabled(proj, "VelocityComponent")
+		if(velocity_comp)then
+			ComponentSetValue2(velocity_comp, "mVelocity", (up_x * -50 * mult) + side_x, (up_y * -50 * mult) + side_y)
+		end
 	end
-	GameShootProjectile(entity, ray_x, ray_y, ray_x + (up_x * -50 * mult), ray_y + (up_y * -50 * mult), proj, true)
-
-	local hit, hx, hy = RaytraceSurfacesAndLiquiform(ray_x, ray_y, ray_x + (up_x * -20), ray_y + (up_y * -20))
+	
+	local hit, hx, hy = RaytraceSurfacesAndLiquiform(ray_x, ray_y, ray_x + (up_x * -20) + side_x * (20/30), ray_y + (up_y * -20) + side_y * (20/30))
 
 	if DEBUG_DRAW then
 		GameCreateSpriteForXFrames(WHITE, ray_x + (up_x * -20), ray_y + (up_y * -20), true, 0, 0, 1, true)
 		if hit then GameCreateSpriteForXFrames(RED, hx, hy, true, 0, 0, 1, true) end
 	end
 
-	if hit and not any_contact then
+	if not(thrust_left == 0 and thrust_right == 0) and hit and not any_contact then
 		local air = EntityLoad("mods/evaisa.drone/ground_air_particles.xml", hx, hy)
 
 		local a = ray_x - hx
@@ -571,6 +723,15 @@ for i = 0, air_ray_steps do
 			ComponentSetValue2(particle_emitter, "count_min", 1 * mult)
 			ComponentSetValue2(particle_emitter, "count_max", 4 * mult)
 		end
+
+		dofile_once("data/scripts/lib/utilities.lua")
+
+		if(Random(1, 20) == 1 and levitation_trail_stacks > 0)then
+			for i = 0, levitation_trail_stacks do
+				shoot_projectile( entity, "data/entities/projectiles/levitation_trail.xml", hx, hy, 0, 0 )
+			end
+		end
+
 	end
 end
 
@@ -597,7 +758,7 @@ if(grind_sound)then
 		current_grind_volume = current_grind_volume - grind_volume_lerp
 	end
 
-	ComponentSetValue2(grind_sound, "m_volume", math.max(math.min(current_grind_volume, 1), 0.001))
+	ComponentSetValue2(grind_sound, "m_volume", math.max(math.min(current_grind_volume * grind_volume, 1), 0.001))
 end
 
 
