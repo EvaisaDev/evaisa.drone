@@ -439,6 +439,7 @@
 	<LuaComponent
 		script_source_file="data/scripts/drone_controls.lua"
 		execute_every_n_frame="1"
+		vm_type="ONE_PER_COMPONENT_INSTANCE"
 		>
 	</LuaComponent>
 </Entity>

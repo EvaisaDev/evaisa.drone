@@ -98,7 +98,7 @@ if (GameGetFrameNum() % 20 == 0)then
 	end
 end
 
-local children = EntityGetAllChildren(entity)
+local children = EntityGetAllChildren(entity)	
 was_stunned = was_stunned or false
 local is_stunned = false
 local legs = 0
@@ -189,6 +189,14 @@ local teleported_y = tonumber(GlobalsGetValue("drone_player_teleported_y", "-100
 if(teleported_x ~= -10000 or teleported_y ~= -10000)then
 	x = teleported_x
 	y = teleported_y
+
+	-- reset velocity when teleported.
+	drone.vx = 0
+	drone.vy = 0
+	drone.angular_velocity = 0
+	vel_x = 0
+	vel_y = 0
+	
 	GlobalsSetValue("drone_player_teleported_x", "-10000")
 	GlobalsSetValue("drone_player_teleported_y", "-10000")
 end
@@ -281,6 +289,7 @@ end
 
 vel_x = vel_x + up_x * total_thrust * delta
 vel_y = vel_y + up_y * total_thrust * delta + frame_gravity * delta
+
 
 local new_x = x + vel_x * delta
 local new_y = y + vel_y * delta

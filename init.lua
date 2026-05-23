@@ -52,7 +52,7 @@ function OnMagicNumbersAndWorldSeedInitialized()
 		ModTextFileSetContent("mods/evaisa.arena/files/entities/player_base.xml", arena_player)
 		ModTextFileSetContent("mods/evaisa.arena/files/entities/client.xml", arena_client)
 
-		local perk_fix = ModTextFileGetContent("mods/evaisa.arena/fiels/scripts/append/perk_fix.lua")
+		local perk_fix = ModTextFileGetContent("mods/evaisa.arena/files/scripts/append/perk_fix.lua")
 
 		perk_fix = perk_fix:gsub("LEVITATION_TRAIL", "FAKEPERK1")
 		perk_fix = perk_fix:gsub("ATTACK_FOOT", "FAKEPERK2")
