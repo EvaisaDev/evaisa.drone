@@ -246,7 +246,9 @@
     is_immune_to_kicks="1"
     only_pick_this_entity="52395832806"
   ></ItemPickUpperComponent>
-
+	<KickComponent
+		can_kick = "0"
+	/>
   <PlatformShooterPlayerComponent
     center_camera_on_this_entity="0"
     aiming_reticle_distance_from_character="60"

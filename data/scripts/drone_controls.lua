@@ -54,6 +54,21 @@ local function rotate_point(px, py, angle)
 	return px * c - py * s, px * s + py * c
 end
 
+local function center_in_solid(cx, cy)
+	local probe = 1
+	local threshold_sq = 2.25
+	local blocked = 0
+	local function check(dx, dy)
+		local hit, hx, hy = RaytraceSurfaces(cx, cy, cx + dx * probe, cy + dy * probe)
+		if hit then
+			local d2 = (hx - cx) * (hx - cx) + (hy - cy) * (hy - cy)
+			if d2 < threshold_sq then blocked = blocked + 1 end
+		end
+	end
+	check(1, 0) check(-1, 0) check(0, 1) check(0, -1)
+	return blocked >= 3
+end
+
 local entity = GetUpdatedEntityID()
 local controls_comp = EntityGetFirstComponentIncludingDisabled(entity, "ControlsComponent")
 local jetpack_left = EntityGetFirstComponentIncludingDisabled(entity, "ParticleEmitterComponent", "thruster_left")
@@ -460,6 +475,38 @@ drone.contact_normals = new_contact_normals
 
 new_x = new_x + snap_x
 new_y = new_y + snap_y
+
+if center_in_solid(new_x, new_y) then
+	local max_r = 20
+	local sdx = { 1, 0, -1, 0 }
+	local sdy = { 0, 1,  0, -1 }
+	local sx, sy = 0, 0
+	local sdir = 0
+	local steps_in_dir = 0
+	local steps_per_turn = 1
+	local turns = 0
+	for _ = 1, (max_r * 2 + 1) * (max_r * 2 + 1) do
+		sx = sx + sdx[sdir + 1]
+		sy = sy + sdy[sdir + 1]
+		steps_in_dir = steps_in_dir + 1
+		if steps_in_dir >= steps_per_turn then
+			steps_in_dir = 0
+			sdir = (sdir + 1) % 4
+			turns = turns + 1
+			if turns % 2 == 0 then steps_per_turn = steps_per_turn + 1 end
+		end
+		if math.abs(sx) > max_r or math.abs(sy) > max_r then break end
+		local tx, ty = new_x + sx, new_y + sy
+		if not center_in_solid(tx, ty) then
+			new_x = tx
+			new_y = ty
+			vel_x = 0
+			vel_y = 0
+			break
+		end
+	end
+end
+
 EntitySetTransform(entity, new_x, new_y, new_r)
 EntityApplyTransform(entity, new_x, new_y, new_r)
 drone.vx = vel_x

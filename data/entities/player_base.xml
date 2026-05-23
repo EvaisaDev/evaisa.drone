@@ -480,6 +480,10 @@
 		>
 	</LuaComponent>
 
+	<KickComponent
+		can_kick = "0"
+	/>
+
   <Entity>
     <Base file="data/entities/misc/effect_no_heal_in_meat_biome.xml" >
     </Base>
